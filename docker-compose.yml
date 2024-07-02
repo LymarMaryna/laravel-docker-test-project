@@ -4,26 +4,29 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./src:/var/www/html
+    depends_on:
+      - postgres
+      - nginx
 
   nginx:
     image: nginx:latest
     container_name: app_web
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
     volumes:
       - ./src:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
 
-  postgresql:
+  postgres:
     image: postgres:latest
     container_name: app_db
-    restart: unless-stopped
+    restart: always
     ports:
-      - "5432:5432"
+      - "8200:5432"
     env_file:
       - .env
     volumes:
@@ -33,9 +36,9 @@ services:
     image: adminer
     container_name: app_adminer
     ports:
-      - "9090:8080"
+      - "8201:8080"
     depends_on:
-      - postgresql
+      - postgres
 
   mailhog:
     image: mailhog/mailhog:latest
