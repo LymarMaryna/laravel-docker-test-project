@@ -9,17 +9,19 @@ services:
       - ./src:/var/www/html
     depends_on:
       - postgres
-      - nginx
 
   nginx:
     container_name: app_webserver
-    image: nginx:latest
-    restart: always
+    image: nginx:alpine
+    restart: unless-stopped
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./src:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
 
   postgres:
     container_name: db_postgres
