@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PersonalToken;
 use App\Models\User;
-use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +18,7 @@ class AuthController extends Controller
      *
      * @return JsonResponse
      */
-    public function issueToken(Request $request)
+    public function issueToken(Request $request): JsonResponse
     {
         $rules = [
             'email' => 'required|email',
@@ -31,26 +30,67 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'errors' => $validator->errors()
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Check if the user exists
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            $user = User::create([
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+            return $this->registerAndAuthenticateUser($request->email, $request->password);
+        } else {
+            return $this->authenticateExistingUser($user, $request->password);
         }
+    }
 
-        // Authenticate the user and generate JWT token
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $token = PersonalToken::generateForUser($user->id);
-
-            return response()->json(['access_token' => $token], Response::HTTP_OK);
+    /**
+     * Authenticate an existing user.
+     *
+     * @param User $user
+     * @param string $password
+     *
+     * @return JsonResponse
+     */
+    private function authenticateExistingUser(User $user, string $password): JsonResponse
+    {
+        if (Auth::attempt(['email' => $user->email, 'password' => $password])) {
+            $token = PersonalToken::getOrCreateTokenForUser($user->id);
+            if (!$token) {
+                return response()->json(['error' => 'Token generation failed'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            } else {
+                return response()->json(['access_token' => $token], Response::HTTP_OK);
+            }
         }
 
         return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
     }
+
+    /**
+     * Register a new user and authenticate.
+     *
+     * @param string $email
+     * @param string $password
+     *
+     * @return JsonResponse
+     */
+    private function registerAndAuthenticateUser(string $email, string $password): JsonResponse
+    {
+        try {
+            $user = User::create([
+                'email' => $email,
+                'password' => Hash::make($password),
+            ]);
+
+            $token = PersonalToken::getOrCreateTokenForUser($user->id);
+
+            if (!$token) {
+                return response()->json(['error' => 'Token generation failed'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            } else {
+                return response()->json(['access_token' => $token], Response::HTTP_OK);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Registration failed'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

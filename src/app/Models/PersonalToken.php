@@ -24,26 +24,57 @@ class PersonalToken extends Model
      *
      * @return string
      */
-    public static function generateForUser(string $userId, int $expirationHours = 2): string
+    public static function getOrCreateTokenForUser(string $userId, int $expirationHours = 2): string
     {
-        $tokenValue = PersonalToken::where('user_id', $userId)
+        $token = PersonalToken::where('user_id', $userId)
             ->where('expires_at', '>', now())
             ->latest()
-            ->value('token');
+            ->first();
 
-        if (!$tokenValue) {
-            $tokenValue = JWT::encode([
-                'id' => $userId,
-                'exp' => time() + (60 * 60) * $expirationHours,
-            ], env('JWT_SECRET'),'HS256');
-
-            self::create([
-                'user_id' => $userId,
-                'token' => $tokenValue,
-                'expires_at' => now()->addHours($expirationHours),
-            ]);
+        if (!$token) {
+            try {
+                $token = self::generateUserToken($userId, $expirationHours);
+            } catch (\Exception $e) {
+                return '';  // Return empty string if token generation fails
+            }
         }
 
-        return $tokenValue;
+        return $token->token ?? '';
+    }
+
+    /**
+     * @param string $userId
+     * @param int $expirationHours
+     *
+     * @return PersonalToken
+     *
+     * @throws \Exception
+     */
+    private static function generateUserToken(string $userId, int $expirationHours = 2): PersonalToken
+    {
+        try {
+            // Delete old tokens if needed
+            // PersonalToken::where('user_id', $userId)->delete();
+
+            $expTime = now()->addHours($expirationHours);
+            $tokenValue = JWT::encode
+            (
+                [
+                    'id' => $userId,
+                    'exp' => $expTime,
+                ],
+                config('api.jwt_secret'),
+                config('api.jwt_alg')
+            );
+
+            return self::create([
+                'user_id' => $userId,
+                'token' => $tokenValue,
+                'expires_at' => $expTime,
+            ]);
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 }
