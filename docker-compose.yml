@@ -1,48 +1,52 @@
 services:
   app:
-    container_name: app_php
+    container_name: app_laravel
+    restart: always
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    restart: always
     volumes:
       - ./src:/var/www/html
     depends_on:
       - postgres
-      - nginx
 
   nginx:
-    image: nginx:latest
-    container_name: app_web
-    restart: always
+    container_name: app_webserver
+    image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./src:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
 
   postgres:
+    container_name: db_postgres
     image: postgres:latest
-    container_name: app_db
     restart: always
     ports:
       - "8200:5432"
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - ./docker/volume/postgresql:/var/lib/postgresql/data
 
   adminer:
+    container_name: db_adminer
     image: adminer
-    container_name: app_adminer
     ports:
       - "8201:8080"
     depends_on:
       - postgres
 
   mailhog:
+    container_name: app_mail
     image: mailhog/mailhog:latest
-    container_name: app_mailhog
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "8301:1025"
+      - "8302:8025"
