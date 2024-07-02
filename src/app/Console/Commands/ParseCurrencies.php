@@ -113,7 +113,6 @@ class ParseCurrencies extends Command
                 // Optionally, throw an exception or return an error response
             }
             $page++;
-            echo $page;
         } while (!empty($responseData));
 
         $this->info('Currencies table updated successfully.');

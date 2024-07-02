@@ -1,5 +1,5 @@
 services:
-  php:
+  app:
     container_name: app_php
     build:
       context: .
