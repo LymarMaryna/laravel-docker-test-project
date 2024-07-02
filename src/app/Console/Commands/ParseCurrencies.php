@@ -64,6 +64,8 @@ class ParseCurrencies extends Command
 
         $responseData = [];
 
+
+        echo "Fetching data from API...";
         do {
             try {
                 $response = $client->request('GET', config('api.url'), [
@@ -112,9 +114,11 @@ class ParseCurrencies extends Command
                 $this->error('Error occurred while making API request: ' . $e->getMessage());
                 // Optionally, throw an exception or return an error response
             }
+            echo '.'; // Progress indicator, can be removed or replaced with 'info' or 'comment
             $page++;
         } while (!empty($responseData));
 
+        echo "\n";
         $this->info('Currencies table updated successfully.');
     }
 }
