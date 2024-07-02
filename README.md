@@ -17,7 +17,7 @@ Ensure you have the following software installed:
    git clone https://github.com/LymarMaryna/laravel-docker-test-project.git
    cd laravel-docker-test-project
    ```
-   
+
 #### 2. Create an environment file.
 
 Copy the `src/.env.example` file to `src/.env` and update the environment variables as necessary:
@@ -50,11 +50,11 @@ JWT_SECRET = your_jwt_secret_here
    bash RunMe.sh
    ```
 
-#### 7. Access the application:
+#### 4. Access the application:
 
-The application should now be running on http://localhost:8080
+The application should now be running on http://localhost
 
-#### 8. Usage
+#### 5. Usage
 
 Commands to run in the cli for parsing data from the API and saving it to the database:
 
@@ -65,6 +65,25 @@ also you can call:
  ```bash
    docker-compose exec app php artisan parse:currencies
    ```
+#### 6. Stopping the Docker Application
+
+To stop the Docker application, follow these steps:
+
+##### Step 1: Navigate to the Project Directory
+
+Ensure you are in the directory containing your `docker-compose.yml` file. Use the `cd` command to navigate to your project directory:
+
+```bash
+cd /path/to/your/project
+```
+
+##### Step 2: Stop the Docker Application
+
+To stop the Docker application, use the following command:
+
+```bash
+docker-compose down
+```
 
 ## API Routes
 
@@ -89,4 +108,5 @@ also you can call:
 ```http
   POST /api/issue-token
 ```
+
 
