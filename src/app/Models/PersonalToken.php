@@ -52,6 +52,10 @@ class PersonalToken extends Model
      */
     private static function generateUserToken(string $userId, int $expirationHours = 2): PersonalToken
     {
+        if (empty(config('api.jwt_secret'))) {
+            throw new \Exception('JWT secret is not set');
+        }
+
         try {
             // Delete old tokens if needed
             // PersonalToken::where('user_id', $userId)->delete();
