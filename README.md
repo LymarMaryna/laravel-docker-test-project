@@ -91,13 +91,13 @@ docker-compose down
 
 #### List Currencies
 
-```http
+```plaintext
   GET /api/currencies
 ```
 
 #### Show Currency
 
-```http
+```plaintext
   GET /api/currencies/${identifier}
 ```
 
@@ -105,7 +105,7 @@ docker-compose down
 
 #### Issue JWT Token
 
-```http
+```plaintext
   POST /api/issue-token
 ```
 
